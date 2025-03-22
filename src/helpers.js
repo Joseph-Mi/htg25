@@ -11,14 +11,15 @@ export function createGeoJSONCircle(center, radiusInKm, points = 64) {
         longitude: center[0]
     };
 
-    const km = radiusInKm;
+    // SET RADIUS HERE
+    const km = radiusInKm * 0.5; // Adjust this factor to make the radius smaller or larger
 
     const ret = [];
     const distanceX = km / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
     const distanceY = km / 110.574;
 
     let theta, x, y;
-    for(var i = 0; i < points; i++) {
+    for (var i = 0; i < points; i++) {
         theta = (i / points) * (2 * Math.PI);
         x = distanceX * Math.cos(theta);
         y = distanceY * Math.sin(theta);
