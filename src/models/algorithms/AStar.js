@@ -27,6 +27,8 @@ class AStar extends PathfindingAlgorithm {
 
     nextStep() {
         if(this.openList.length === 0) {
+            console.log("[A*] No more nodes in open list - finished");
+
             this.finished = true;
             return [];
         }
@@ -35,15 +37,24 @@ class AStar extends PathfindingAlgorithm {
         const currentNode = this.openList.reduce((acc, current) => 
             current.totalDistance < acc.totalDistance ? current : acc, this.openList[0]
         );
+
+        console.log("[A*] Processing node:", {
+            id: currentNode.id,
+            totalDistance: currentNode.totalDistance,
+            isEndNode: this.endNodes.some(n => n.id === currentNode.id) // Check if current node is an end node
+        });
+      
+
         this.openList.splice(this.openList.indexOf(currentNode), 1);
         currentNode.visited = true;
 
         // Check if current node is one of the end nodes
-        if(this.endNodes.some(endNode => currentNode.id === endNode.id)) {
-            if (!this.shortestPath || currentNode.distanceFromStart < this.shortestPath.distanceFromStart) {
-                this.shortestPath = currentNode;
-            }
+        if (this.endNodes.some(endNode => currentNode.id === endNode.id)) {
+            console.log("[A*] Reached end node:", currentNode.id);
+            this.shortestPath = currentNode;
+            this.finished = true; // Stop algorithm immediately
         }
+      
 
         for(const neighbor of currentNode.neighbors) {
             const neighborNode = neighbor.node;

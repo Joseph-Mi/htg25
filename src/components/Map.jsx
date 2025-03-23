@@ -233,11 +233,14 @@ function Map() {
                 setAnimationEnded(time >= timer.current && parentNode == null && parentNode2 == null);
             }
             else {
-                if(!traceNode.current) traceNode.current = state.current.endNode;
-                const parentNode = traceNode.current.parent;
-                updateWaypoints(parentNode, traceNode.current, "route", Math.max(Math.log2(settings.speed), 1));
+                // CORRECTED: Get the shortest path from the algorithm
+                if(!traceNode.current) traceNode.current = state.current.algorithm.getShortestPath();
+                const parentNode = traceNode.current?.parent; // Added optional chaining
+                if (parentNode) {
+                    updateWaypoints(parentNode, traceNode.current, "route", Math.max(Math.log2(settings.speed), 1));
+                }
                 traceNode.current = parentNode ?? traceNode.current;
-                setAnimationEnded(time >= timer.current && parentNode == null);
+                setAnimationEnded(time >= timer.current && !parentNode);
             }
         }
 
