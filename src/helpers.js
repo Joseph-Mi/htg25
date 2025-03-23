@@ -54,3 +54,52 @@ export function arrayToRgb(array) {
     const result = `rgb${array.length >= 4 ? "a" : ""}(${rgb.join(", ")})`;
     return result;
 }
+
+
+
+/**
+ * Finds the closest endpoint from the ENDNODES array to a given start point
+ * @param {Number} startLat Latitude of the start point
+ * @param {Number} startLon Longitude of the start point
+ * @returns {Object} The closest endpoint object
+ */
+export function findClosestEndpoint(startLat, startLon) {
+    let closest = null;
+    let minDistance = Infinity;
+
+    for (const endpoint of ENDNODES) {
+        const distance = calculateDistance(
+            startLat, 
+            startLon, 
+            endpoint.latitude, 
+            endpoint.longitude
+        );
+
+        if (distance < minDistance) {
+            minDistance = distance;
+            closest = endpoint;
+        }
+    }
+
+    return closest;
+}
+
+/**
+ * Calculates the Haversine distance between two geographic points
+ * @param {Number} lat1 Latitude of the first point
+ * @param {Number} lon1 Longitude of the first point
+ * @param {Number} lat2 Latitude of the second point
+ * @param {Number} lon2 Longitude of the second point
+ * @returns {Number} Distance in kilometers
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}

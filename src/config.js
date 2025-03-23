@@ -45,6 +45,5 @@ export const ENDNODES = [
     { name: "PinPoint- Infinity Health Downtown Toronto: Walk in/Medical Clinic & Rehab Centre", latitude: 43.643, longitude: -79.384 },
     { name: "HealthOne Medical & Walk-In The Well", latitude: 43.643, longitude: -79.395 },
     { name: "Cloud Care Clinics", latitude: 43.657, longitude: -79.379 },
-    { name: "Primacy - Carlton & Church Medical & Walk-In Clinic", latitude: 43.663, longitude: -79.380 },
-    { name: "Sanomed Medical Clinic", latitude: 43.666, longitude: -79.388 }
+    { name: "Primacy - Carlton & Church Medical & Walk-In Clinic", latitude: 43.663, longitude: -79.380 }
 ];

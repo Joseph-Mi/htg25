@@ -3,6 +3,7 @@ import BidirectionalSearch from "./algorithms/BidirectionalSearch";
 import Dijkstra from "./algorithms/Dijkstra";
 import Greedy from "./algorithms/Greedy";
 import PathfindingAlgorithm from "./algorithms/PathfindingAlgorithm";
+// import { ENDNODES } from "../config";
 
 export default class PathfindingState {
     static #instance;
@@ -13,7 +14,7 @@ export default class PathfindingState {
      */
     constructor() {
         if (!PathfindingState.#instance) {
-            this.endNode = null;
+            this.endNode = [];
             this.graph = null;
             this.finished = false;
             this.algorithm = new PathfindingAlgorithm();
@@ -69,7 +70,8 @@ export default class PathfindingState {
                 this.algorithm = new AStar();
                 break;
         }
-
+    
+        // Iterate through all end nodes
         this.algorithm.start(this.startNode, this.endNode);
     }
 

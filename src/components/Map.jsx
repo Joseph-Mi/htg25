@@ -11,6 +11,7 @@ import PathfindingState from "../models/PathfindingState";
 import Interface from "./Interface";
 import { INITIAL_COLORS, INITIAL_VIEW_STATE, MAP_STYLE } from "../config";
 import useSmoothStateChange from "../hooks/useSmoothStateChange";
+import { ENDNODES } from '../config';
 
 function Map() {
     const [startNode, setStartNode] = useState(null);
@@ -63,7 +64,9 @@ function Map() {
                 setLoading(true);
             }, 300);
             
-            const node = await getNearestNode(e.coordinate[1], e.coordinate[0]);
+            const node = await getNearestNode(43.665, -79.380);
+            const node1 = await getNearestNode(43.665, -79.380);
+            const node2 = await getNearestNode(43.665, -79.380);
             if(!node) {
                 ui.current.showSnack("No path was found in the vicinity, please try another location.");
                 clearTimeout(loadingHandle);
@@ -72,7 +75,11 @@ function Map() {
             }
 
             const realEndNode = state.current.getNode(node.id);
+            const realEndNode1 = state.current.getNode(node1.id);
+            const realEndNode2 = state.current.getNode(node2.id);
             setEndNode(node);
+            setEndNode(node1);
+            setEndNode(node2);
             
             clearTimeout(loadingHandle);
             setLoading(false);
@@ -82,6 +89,8 @@ function Map() {
                 return;
             }
             state.current.endNode = realEndNode;
+            state.current.endNode = realEndNode1;
+            state.current.endNode = realEndNode2;
             
             return;
         }
@@ -111,6 +120,37 @@ function Map() {
             clearTimeout(loadingHandle);
             setLoading(false);
         });
+    }
+
+    function redrawEndpoints() {
+        // Clear existing endpoint layers
+        setTripsData([]);
+        waypoints.current = [];
+        timer.current = 0;
+        
+        // Redraw all endpoints from config
+        ENDNODES.forEach(endpoint => {
+            // Find or create the endpoint node in the graph
+            const node = state.current.graph.getNodeByCoordinates(endpoint.latitude, endpoint.longitude);
+            if (!node) {
+                state.current.graph.addNode(null, endpoint.latitude, endpoint.longitude);
+            }
+            
+            // Update visualization
+            setTripsData(prevData => [
+                ...prevData,
+                {
+                    path: [[endpoint.longitude, endpoint.latitude], [endpoint.longitude, endpoint.latitude]],
+                    timestamps: [timer.current, timer.current],
+                    color: "endNodeFill"
+                }
+            ]);
+            
+            timer.current += 100; // Small increment to keep timestamps unique
+        });
+        
+        // Trigger re-render
+        setTripsData(waypoints.current);
     }
 
     // Start new pathfinding animation
