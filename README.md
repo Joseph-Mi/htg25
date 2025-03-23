@@ -9,7 +9,7 @@
 
 ## Available algorithms 
 - A* algorithm
-- Greedy algorithm
+- Greedy algorithm 
 - Dijkstra's algorithm
 - Bidirectional Search algorithm
 - Wait time based

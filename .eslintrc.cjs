@@ -20,7 +20,7 @@ module.exports = {
             "error",
             "double"
         ],
-        "semi": [
+        "semi": [ 
             "error",
             "always"
         ],
