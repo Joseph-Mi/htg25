@@ -45,5 +45,16 @@ export const ENDNODES = [
     { name: "PinPoint- Infinity Health Downtown Toronto: Walk in/Medical Clinic & Rehab Centre", latitude: 43.643, longitude: -79.384 },
     { name: "HealthOne Medical & Walk-In The Well", latitude: 43.643, longitude: -79.395 },
     { name: "Cloud Care Clinics", latitude: 43.657, longitude: -79.379 },
-    { name: "Primacy - Carlton & Church Medical & Walk-In Clinic", latitude: 43.663, longitude: -79.380 }
+    { name: "Primacy - Carlton & Church Medical & Walk-In Clinic", latitude: 43.663, longitude: -79.380 },
+    { name: "Care & Family Health Yorkville", latitude: 43.671, longitude: -79.394 },
+    { name: "Appletree Medical Centre", latitude: 43.642, longitude: -79.394 },
+    { name: "Sanomed Medical Clinic", latitude: 43.666, longitude: -79.387 },
+    { name: "HealthOne Harbourfront Medical & Walk-In", latitude: 43.642, longitude: -79.381 },
+    { name: "Family Practice Walk-In Clinic", latitude: 43.658, longitude: -79.403 },
+    { name: "Bathurst Bloor Walk in Clinic", latitude: 43.666, longitude: -79.412 },
+    { name: "Downtown Doctors Walk In Medical Clinic", latitude: 43.666, longitude: -79.404 },
+    { name: "Royal Care Walk-in Clinic", latitude: 43.659, longitude: -79.401 },
+    { name: "Parliament Walk In Medical Clinic", latitude: 43.661, longitude: -79.366 },
+    { name: "WELL Health Medical Centres - Yonge & Charles", latitude: 43.670, longitude: -79.387 },
+    { name: "PinPoint- Infinity Health Downtown Toronto: Walk in/Medical Clinic & Rehab Centre", latitude: 43.642, longitude: -79.384 }
 ];

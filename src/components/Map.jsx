@@ -15,7 +15,7 @@ import { ENDNODES } from '../config';
 
 function Map() {
     const [startNode, setStartNode] = useState(null);
-    const [endNode, setEndNode] = useState(null);
+    const [endNodes, setEndNodes] = useState([]);
     const [selectionRadius, setSelectionRadius] = useState([]);
     const [tripsData, setTripsData] = useState([]);
     const [started, setStarted] = useState();
@@ -48,7 +48,7 @@ function Map() {
         fadeRadius.current = true;
         clearPath();
 
-        // Place end node
+        // Place end nodes
         if(info.rightButton || placeEnd) {
             if(e.layer?.id !== "selection-radius") {
                 ui.current.showSnack("Please select a point inside the radius.", "info");
@@ -64,33 +64,56 @@ function Map() {
                 setLoading(true);
             }, 300);
             
-            const node = await getNearestNode(43.665, -79.380);
-            const node1 = await getNearestNode(43.665, -79.380);
-            const node2 = await getNearestNode(43.665, -79.380);
-            if(!node) {
-                ui.current.showSnack("No path was found in the vicinity, please try another location.");
+            try {
+                // Get nearest nodes for all endpoints
+                const nodes = [
+                    await getNearestNode(43.665, -79.380),
+                    await getNearestNode(43.661, -79.386),
+                    await getNearestNode(43.655, -79.390),
+                    await getNearestNode(43.650, -79.385),
+                    await getNearestNode(43.643, -79.384),
+                    await getNearestNode(43.643, -79.395),
+                    await getNearestNode(43.657, -79.379),
+                    await getNearestNode(43.663, -79.380),
+                    await getNearestNode(43.671, -79.394),
+                    await getNearestNode(43.642, -79.394),
+                    await getNearestNode(43.666, -79.387),
+                    await getNearestNode(43.642, -79.381),
+                    await getNearestNode(43.658, -79.403),
+                    await getNearestNode(43.666, -79.412),
+                    await getNearestNode(43.666, -79.404),
+                    await getNearestNode(43.659, -79.401),
+                    await getNearestNode(43.661, -79.366),
+                    await getNearestNode(43.670, -79.387),
+                    await getNearestNode(43.642, -79.384)
+                ];
+
+                // Filter out any null nodes
+                const validNodes = nodes.filter(node => node !== null);
+
+                if (validNodes.length === 0) {
+                    ui.current.showSnack("No paths were found for any endpoints.");
+                    clearTimeout(loadingHandle);
+                    setLoading(false);
+                    return;
+                }
+
+                // Convert to graph nodes
+                const graphEndNodes = validNodes.map(node => state.current.getNode(node.id)).filter(Boolean);
+                
+                // Set end nodes in PathfindingState and React state
+                state.current.endNode = graphEndNodes;
+                setEndNodes(graphEndNodes);
+
+                console.log("End nodes set:", graphEndNodes);
+
+            } catch (error) {
+                ui.current.showSnack("An error occurred processing endpoints.");
+                console.error(error);
+            } finally {
                 clearTimeout(loadingHandle);
                 setLoading(false);
-                return;
             }
-
-            const realEndNode = state.current.getNode(node.id);
-            const realEndNode1 = state.current.getNode(node1.id);
-            const realEndNode2 = state.current.getNode(node2.id);
-            setEndNode(node);
-            setEndNode(node1);
-            setEndNode(node2);
-            
-            clearTimeout(loadingHandle);
-            setLoading(false);
-
-            if(!realEndNode) {
-                ui.current.showSnack("An error occurred. Please try again.");
-                return;
-            }
-            state.current.endNode = realEndNode;
-            state.current.endNode = realEndNode1;
-            state.current.endNode = realEndNode2;
             
             return;
         }
@@ -99,7 +122,7 @@ function Map() {
             setLoading(true);
         }, 300);
 
-        // Fectch nearest node
+        // Fetch nearest node for start node
         const node = await getNearestNode(e.coordinate[1], e.coordinate[0]);
         if(!node) {
             ui.current.showSnack("No path was found in the vicinity, please try another location.");
@@ -109,11 +132,10 @@ function Map() {
         }
 
         setStartNode(node);
-        setEndNode(null);
+        setEndNodes([]);
         const circle = createGeoJSONCircle([node.lon, node.lat], radius ?? settings.radius);
-        setSelectionRadius([{ contour: circle}]);
+        setSelectionRadius([{ contour: circle }]);
         
-        // Fetch nodes inside the radius
         getMapGraph(getBoundingBoxFromPolygon(circle), node.id).then(graph => {
             state.current.graph = graph;
             clearPath();
@@ -123,20 +145,16 @@ function Map() {
     }
 
     function redrawEndpoints() {
-        // Clear existing endpoint layers
         setTripsData([]);
         waypoints.current = [];
         timer.current = 0;
         
-        // Redraw all endpoints from config
         ENDNODES.forEach(endpoint => {
-            // Find or create the endpoint node in the graph
             const node = state.current.graph.getNodeByCoordinates(endpoint.latitude, endpoint.longitude);
             if (!node) {
                 state.current.graph.addNode(null, endpoint.latitude, endpoint.longitude);
             }
             
-            // Update visualization
             setTripsData(prevData => [
                 ...prevData,
                 {
@@ -146,14 +164,12 @@ function Map() {
                 }
             ]);
             
-            timer.current += 100; // Small increment to keep timestamps unique
+            timer.current += 100;
         });
         
-        // Trigger re-render
         setTripsData(waypoints.current);
     }
 
-    // Start new pathfinding animation
     function startPathfinding() {
         setFadeRadiusReverse(true);
         setTimeout(() => {
@@ -163,7 +179,6 @@ function Map() {
         }, 400);
     }
 
-    // Start or pause already running animation
     function toggleAnimation(loop = true, direction = 1) {
         if(time === 0 && !animationEnded) return;
         setPlaybackDirection(direction);
@@ -192,18 +207,16 @@ function Map() {
         traceNode.current = null;
         traceNode2.current = null;
         setAnimationEnded(false);
+        setEndNodes([]);
     }
 
-    // Progress animation by one step
     function animateStep(newTime) {
         const updatedNodes = state.current.nextStep();
         for(const updatedNode of updatedNodes) {
             updateWaypoints(updatedNode, updatedNode.referer);
         }
 
-        // Found end but waiting for animation to end
         if(state.current.finished && !animationEnded) {
-            // Render route differently for bidirectional
             if(settings.algorithm === "bidirectional") {
                 if(!traceNode.current) traceNode.current = updatedNodes[0];
                 const parentNode = traceNode.current.parent;
@@ -228,13 +241,11 @@ function Map() {
             }
         }
 
-        // Animation progress
         if (previousTimeRef.current != null && !animationEnded) {
             const deltaTime = newTime - previousTimeRef.current;
             setTime(prevTime => (prevTime + deltaTime * playbackDirection));
         }
 
-        // Playback progress
         if(previousTimeRef.current != null && animationEnded && playbackOn) {
             const deltaTime = newTime - previousTimeRef.current;
             if(time >= timer.current && playbackDirection !== -1) {
@@ -244,7 +255,6 @@ function Map() {
         }
     }
 
-    // Animation callback
     function animate(newTime) {
         for(let i = 0; i < settings.speed; i++) {
             animateStep(newTime);
@@ -254,7 +264,6 @@ function Map() {
         requestRef.current = requestAnimationFrame(animate);
     }
 
-    // Add new node to the waypoitns property and increment timer
     function updateWaypoints(node, refererNode, color = "path", timeMultiplier = 1) {
         if(!node || !refererNode) return;
         const distance = Math.hypot(node.longitude - refererNode.longitude, node.latitude - refererNode.latitude);
@@ -264,7 +273,7 @@ function Map() {
             { 
                 path: [[refererNode.longitude, refererNode.latitude], [node.longitude, node.latitude]],
                 timestamps: [timer.current, timer.current + timeAdd],
-                color,// timestamp: timer.current + timeAdd
+                color
             }
         ];
 
@@ -273,7 +282,7 @@ function Map() {
     }
 
     function changeLocation(location) {
-        setViewState({ ...viewState, longitude: location.longitude, latitude: location.latitude, zoom: 13,transitionDuration: 1, transitionInterpolator: new FlyToInterpolator()});
+        setViewState({ ...viewState, longitude: location.longitude, latitude: location.latitude, zoom: 13, transitionDuration: 1, transitionInterpolator: new FlyToInterpolator()});
     }
 
     function changeSettings(newSettings) {
@@ -347,22 +356,24 @@ function Map() {
                         fadeTrail={false}
                         currentTime={time}
                         getColor={d => colors[d.color]}
-                        /** Create a nice glowy effect that absolutely kills the performance  */
-                        // getColor={(d) => {
-                        //     if(d.color !== "path") return colors[d.color];
-                        //     const color = colors[d.color];
-                        //     const delta = Math.abs(time - d.timestamp);
-                        //     return color.map(c => Math.max((c * 1.6) - delta * 0.1, c));
-                        // }}
                         updateTriggers={{
+
                             getColor: [colors.path, colors.route]
                         }}
                     />
                     <ScatterplotLayer 
                         id="start-end-points"
                         data={[
-                            ...(startNode ? [{ coordinates: [startNode.lon, startNode.lat], color: colors.startNodeFill, lineColor: colors.startNodeBorder }] : []),
-                            ...(endNode ? [{ coordinates: [endNode.lon, endNode.lat], color: colors.endNodeFill, lineColor: colors.endNodeBorder }] : []),
+                            ...(startNode ? [{ 
+                                coordinates: [startNode.lon, startNode.lat], 
+                                color: colors.startNodeFill, 
+                                lineColor: colors.startNodeBorder 
+                            }] : []),
+                            ...(endNodes.map(node => ({ 
+                                coordinates: [node.longitude, node.latitude], // Corrected properties
+                                color: colors.endNodeFill,
+                                lineColor: colors.endNodeBorder
+                            }))),
                         ]}
                         pickable={true}
                         opacity={1}
@@ -386,7 +397,7 @@ function Map() {
             </div>
             <Interface 
                 ref={ui}
-                canStart={startNode && endNode}
+                canStart={startNode && endNodes.length > 0}
                 started={started}
                 animationEnded={animationEnded}
                 playbackOn={playbackOn}
